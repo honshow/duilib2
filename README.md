@@ -1,12 +1,14 @@
 # 1. duilib
 关于`duilib`的介绍可以访问：[duilib](https://github.com/duilib/duilib)
 
-该项目是在[DuiLib_Ultimate](https://github.com/qdtroy/DuiLib_Ultimate)基础上进行了BUG修复、功能增强而来。
+该项目基于[DuiLib_Ultimate](https://github.com/qdtroy/DuiLib_Ultimate)，对其进行了BUG修复、功能增强。
 
 # 2. 如何编译
-依赖[ppxbase](https://github.com/winsoft666/ppx)库提供的基础功能，如String、函数闭合体等。
+使用`Visual Studio 2017`打开`src\duilib2.sln`，选择对应的编译选项进行编译，或者使用CMake生成相应的工程然后编译。
 
-使用`Visual Studio 2017`打开`src\duilib2.sln`，选择对应的编译选项进行编译即可。
+如果需要编译Cef控件，需要提前下载cef库，并设置`UILIB_WITH_CEF`宏。
+
+CMake脚本会默认下载[winsoft666 cef_binary](https://github.com/winsoft666/cef_binary)项目的v1.0版本到`cef_binary-1.0`目录，也可以从其他位置下载其他版本的cef，放置到此目录。
 
 # 3. 属性
 属性文档见：`src\doc\Attributes.xml`
@@ -34,6 +36,5 @@
 - 优化：CEF采用GDI绘制，保证客户端兼容性
 - 优化：任务栏托盘，提供任务栏重启重新创建托盘图标的功能
 - 修复：flash控件显示异常，及无法与C++交互的问题
--------------------------------
-**感谢您的使用，欢迎提交BUG**
+
 
