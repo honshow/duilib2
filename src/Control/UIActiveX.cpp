@@ -1,5 +1,4 @@
 ﻿#include "StdAfx.h"
-#include "ppxbase/logging.h"
 
 namespace DuiLib {
     class CActiveXCtrl;
@@ -1216,7 +1215,7 @@ namespace DuiLib {
         }
 
         if (FAILED(hr)) {
-            ppx::base::TraceMsgW(L"CActiveXUI CoCreateInstance failed, hr=%ld, GLE=%ld", hr, GetLastError());
+            TraceMsgW(L"CActiveXUI CoCreateInstance failed, hr=%ld, GLE=%ld", hr, GetLastError());
             return false;
         }
 

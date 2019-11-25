@@ -1,7 +1,6 @@
 ﻿#include "StdAfx.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "Internal\stb_image.h"
-#include "ppxbase/stringencode.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////
 namespace DuiLib {
@@ -322,7 +321,7 @@ namespace DuiLib {
                         hz = (HZIP)CPaintManagerUI::GetResourceZipHandle();
                     } else {
 #ifdef UNICODE
-                        std::string pwd = ppx::base::UnicodeToAnsi(sFilePwd.GetData());
+                        std::string pwd = UnicodeToAnsi(sFilePwd.GetData());
                         hz = OpenZip(sFile, pwd.c_str());
 #else
                         hz = OpenZip(sFile, sFilePwd);
@@ -520,7 +519,7 @@ namespace DuiLib {
                 else {
                     CDuiString sFilePwd = CPaintManagerUI::GetResourceZipPwd();
 #ifdef UNICODE
-                    std::string pwd = ppx::base::UnicodeToAnsi(sFilePwd.GetData());
+                    std::string pwd = UnicodeToAnsi(sFilePwd.GetData());
                     hz = OpenZip(sFile, pwd.c_str());
 #else
                     hz = OpenZip(sFile, sFilePwd);

@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <mutex>
+#include "UIlibExport.h"
 
 namespace DuiLib {
 
@@ -104,11 +106,11 @@ namespace DuiLib {
         const CDuiString &operator=(const TCHAR ch);
         const CDuiString &operator=(LPCTSTR pstr);
 #ifdef _UNICODE
-        const CDuiString &CDuiString::operator=(LPCSTR lpStr);
-        const CDuiString &CDuiString::operator+=(LPCSTR lpStr);
+        const CDuiString &operator=(LPCSTR lpStr);
+        const CDuiString &operator+=(LPCSTR lpStr);
 #else
-        const CDuiString &CDuiString::operator=(LPCWSTR lpwStr);
-        const CDuiString &CDuiString::operator+=(LPCWSTR lpwStr);
+        const CDuiString &operator=(LPCWSTR lpwStr);
+        const CDuiString &operator+=(LPCWSTR lpwStr);
 #endif
         CDuiString operator+(const CDuiString &src) const;
         CDuiString operator+(LPCTSTR pstr) const;
@@ -234,6 +236,188 @@ namespace DuiLib {
         double m_fData;
         std::string m_strData;
     };
+
+
+   UILIB_API std::string UnicodeToAnsi(const std::wstring &str, unsigned int code_page = 0);
+   UILIB_API std::wstring AnsiToUnicode(const std::string &str, unsigned int code_page = 0);
+   UILIB_API std::string UnicodeToUtf8(const std::wstring &str);
+   UILIB_API std::wstring Utf8ToUnicode(const std::string &str);
+   UILIB_API std::string AnsiToUtf8(const std::string &str, unsigned int code_page = 0);
+   UILIB_API std::string Utf8ToAnsi(const std::string &str, unsigned int code_page = 0);
+   UILIB_API std::string UnicodeToUtf8BOM(const std::wstring &str);
+   UILIB_API std::string AnsiToUtf8BOM(const std::string &str, unsigned int code_page = 0);
+
+
+#ifdef UNICODE
+#define TCHARToAnsi(str) UnicodeToAnsi((str), 0)
+#define TCHARToUtf8(str) UnicodeToUtf8((str))
+#define AnsiToTCHAR(str) AnsiToUnicode((str), 0)
+#define Utf8ToTCHAR(str) Utf8ToUnicode((str))
+#define TCHARToUnicode(str) ((std::wstring)(str))
+#define UnicodeToTCHAR(str) ((std::wstring)(str))
+#else
+#define TCHARToAnsi(str) ((std::string)(str))
+#define TCHARToUtf8 AnsiToUtf8((str), 0)
+#define AnsiToTCHAR(str) ((std::string)(str))
+#define Utf8ToTCHAR(str) Utf8ToAnsi((str), 0)
+#define TCHARToUnicode(str) AnsiToUnicode((str), 0)
+#define UnicodeToTCHAR(str) UnicodeToAnsi((str), 0)
+#endif
+
+
+   class UILIB_API CriticalSection {
+   public:
+       CriticalSection();
+       ~CriticalSection();
+       void Enter() const;
+       void Leave() const;
+       bool TryEnter() const;
+   private:
+       CriticalSection(const CriticalSection &refCritSec);
+       CriticalSection &operator=(const CriticalSection &refCritSec);
+       mutable CRITICAL_SECTION crit_;
+   };
+
+   class UILIB_API CritScope {
+   public:
+       explicit CritScope(const CriticalSection *pCS);
+       ~CritScope();
+   private:
+       const CriticalSection *const crit_;
+       CritScope(const CritScope&) = delete;
+       void operator=(const CritScope&) = delete;
+   };
+
+   UILIB_API std::wstring GetCurrentProcessDirectoryW();
+   UILIB_API std::string GetCurrentProcessDirectoryA();
+#if defined(UNICODE) || defined(_UNICODE)
+#define GetCurrentProcessDirectory GetCurrentProcessDirectoryW
+#else
+#define GetCurrentProcessDirectory GetCurrentProcessDirectoryA
+#endif
+
+
+   UILIB_API void TraceMsgW(const wchar_t *lpFormat, ...);
+   UILIB_API void TraceMsgA(const char *lpFormat, ...);
+
+   UILIB_API BOOL UIPIMsgFilter(HWND hWnd, UINT uMessageID, BOOL bAllow);
+
+
+   template<class T>
+   class Singleton {
+   public:
+       static T *Instance();
+       static void Release();
+   protected:
+       Singleton() {}
+       Singleton(const Singleton &) {}
+       Singleton &operator=(const Singleton &) {}
+   private:
+       static T *this_;
+       static std::mutex m_;
+   };
+
+
+   template<class T>
+   T  *Singleton<T>::this_ = nullptr;
+
+   template<class T>
+   std::mutex Singleton<T>::m_;
+
+
+   template<class T>
+   T *Singleton<T>::Instance(void) {
+       //double-check
+       if (this_ == nullptr) {
+           std::lock_guard<std::mutex> lg(m_);
+           if (this_ == nullptr) {
+               this_ = new T;
+           }
+       }
+       return this_;
+   }
+
+   template<class T>
+   void Singleton<T>::Release(void) {
+       if (this_) {
+           delete this_;
+       }
+   }
+
+#define SINGLETON_CLASS_DECLARE(class_name)	\
+    friend class DuiLib::Singleton<##class_name>;
+
+   class UILIB_API TimerBase {
+   public:
+       TimerBase();
+       virtual ~TimerBase();
+       static void CALLBACK TimerProc(void *param, BOOLEAN timerCalled);
+
+       // About dwFlags, see: https://msdn.microsoft.com/en-us/library/windows/desktop/ms682485(v=vs.85).aspx
+       //
+       BOOL Start(DWORD ulInterval,  // ulInterval in ms
+           BOOL bImmediately,
+           BOOL bOnce,
+           ULONG dwFlags = WT_EXECUTELONGFUNCTION);
+       void Stop(bool bWait);
+       virtual void OnTimedEvent();
+   private:
+       HANDLE m_hTimer;
+       PTP_TIMER m_pTimer;
+   };
+
+   template <class T>
+   class TTimer : public TimerBase {
+   public:
+       typedef private void (T::*POnTimer)(void);
+
+       TTimer() {
+           m_pClass = NULL;
+           m_pfnOnTimer = NULL;
+       }
+
+       void SetTimedEvent(T *pClass, POnTimer pFunc) {
+           m_pClass = pClass;
+           m_pfnOnTimer = pFunc;
+       }
+
+   protected:
+       void OnTimedEvent() override {
+           if (m_pfnOnTimer && m_pClass) {
+               (m_pClass->*m_pfnOnTimer)();
+           }
+       }
+
+   private:
+       T *m_pClass;
+       POnTimer m_pfnOnTimer;
+   };
+
+   class UILIB_API Timer : public TimerBase {
+   public:
+       typedef std::function<void()> FN_CB;
+       Timer() {
+
+       }
+
+       Timer(FN_CB cb) {
+           SetTimedEvent(cb);
+       }
+
+       void SetTimedEvent(FN_CB cb) {
+           m_cb = cb;
+       }
+
+   protected:
+       void OnTimedEvent() override {
+           if (m_cb) {
+               m_cb();
+           }
+       }
+
+   private:
+       FN_CB m_cb;
+   };
 }// namespace DuiLib
 
 #endif // __UTILS_H__

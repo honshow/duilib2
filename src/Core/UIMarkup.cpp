@@ -1,5 +1,4 @@
 ﻿#include "StdAfx.h"
-#include "ppxbase/stringencode.h"
 #ifndef TRACE
     #define TRACE
 #endif
@@ -414,7 +413,7 @@ namespace DuiLib {
             else {
                 CDuiString sFilePwd = CPaintManagerUI::GetResourceZipPwd();
 #ifdef UNICODE
-                std::string pwd = ppx::base::UnicodeToAnsi(sFilePwd.GetData());
+                std::string pwd = UnicodeToAnsi(sFilePwd.GetData());
                 hz = OpenZip(sFile, pwd.c_str());
 #else
                 hz = OpenZip(sFile, sFilePwd);

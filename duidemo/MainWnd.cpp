@@ -324,13 +324,13 @@ void MainWnd::OnClick(TNotifyUI &msg) {
     }
 	else if (strName.CompareNoCase(TEXT("btnPostTask")) == 0) {
 		std::thread t = std::thread([this]() {
-			PostTaskToUIThread(ppx::base::BindLambda([this]() {
+			PostTaskToUIThread([this]() {
 				assert(IsInUIThread());
 				CButtonUI *btnPostTask = static_cast<CButtonUI *>(m_PaintManager.FindControl(TEXT("btnPostTask")));
 				if (btnPostTask) {
 					btnPostTask->SetEnabled(false);
 				}
-			}));
+			});
 
 
 			CDuiString str;
@@ -340,13 +340,13 @@ void MainWnd::OnClick(TNotifyUI &msg) {
 				UpdateText(str);
 			}
 
-			PostTaskToUIThread(ppx::base::BindLambda([this]() {
+			PostTaskToUIThread([this]() {
 				assert(IsInUIThread());
 				CButtonUI *btnPostTask = static_cast<CButtonUI *>(m_PaintManager.FindControl(TEXT("btnPostTask")));
 				if (btnPostTask) {
 					btnPostTask->SetEnabled(true);
 				}
-			}));
+			});
 		});
 		t.detach();
 	}
@@ -375,7 +375,7 @@ void MainWnd::OnClick(TNotifyUI &msg) {
         m_pDlgFake = new DlgFake();
         if (m_pDlgFake->Create(NULL, TEXT("InvisibleCEF"), UI_WNDSTYLE_DIALOG, 0L, 0, 0, 600, 400)) {
             m_pDlgFake->ShowWindow(false);
-            m_pDlgFake->LoadURL(L"www.gogo123.com");
+            m_pDlgFake->LoadURL(L"www.baidu.com");
         }
     }
     else if (strName.CompareNoCase(TEXT("btnShowInvisibleCEF")) == 0) {
@@ -383,7 +383,7 @@ void MainWnd::OnClick(TNotifyUI &msg) {
             m_pDlgFake->ShowWindow(true);
         }
     }
-    else if (strName.CompareNoCase(TEXT("btnShowInvisibleCEF")) == 0) {
+    else if (strName.CompareNoCase(TEXT("btnCloseInvisibleCEF")) == 0) {
         if (m_pDlgFake) {
             m_pDlgFake->Close();
         }
@@ -438,12 +438,12 @@ HRESULT STDMETHODCALLTYPE MainWnd::ShowContextMenu(CWebBrowserUI *pWeb,
 }
 
 void MainWnd::UpdateText(const CDuiString &str) {
-	PostTaskToUIThread(ppx::base::BindLambda([this, str]() {
-		CButtonUI *btnPostTask = static_cast<CButtonUI *>(m_PaintManager.FindControl(TEXT("btnPostTask")));
-		if (btnPostTask) {
-			btnPostTask->SetText(str.GetData());
-		}
-	}));
+    PostTaskToUIThread([this, str]() {
+        CButtonUI *btnPostTask = static_cast<CButtonUI *>(m_PaintManager.FindControl(TEXT("btnPostTask")));
+        if (btnPostTask) {
+            btnPostTask->SetText(str.GetData());
+        }
+    });
 }
 
 void MainWnd::AddListItem(int iCount) {
@@ -487,10 +487,9 @@ VOID MainWnd::TaskTest() {
 			WaitForSingleObject(m_hTaskStartEvent, INFINITE);
 			for (int j = i*1000; j < (i+1)* 1000; j++) {
 				std::string s = "string字符串" + std::to_string(j);
-				PostTaskToUIThread(ppx::base::BindLambda([j, s]() {
-					PPX_ASSERT(s == "string字符串" + std::to_string(j));
-					ppx::base::TraceMsgA("%d: %s\n", j, s.c_str());
-				}));
+				PostTaskToUIThread([j, s]() {
+					TraceMsgA("%d: %s\n", j, s.c_str());
+				});
 			}
 		});
 		h.detach();

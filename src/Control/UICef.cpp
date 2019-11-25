@@ -3,9 +3,6 @@
 #include "UICef.h"
 #include <fstream>
 #include <cstring>
-#include "ppxbase/stringencode.h"
-#include "ppxbase/criticalsection.h"
-#include "ppxbase/random.h"
 #include "Internal/Cef/RequestContextHandler.h"
 #include "Internal/Cef/CefHandler.h"
 #include "Internal/Cef/CefUtil.h"
@@ -47,8 +44,9 @@ namespace DuiLib {
             , m_dwCefBkColor(0xffffffff) {
             m_hViewMemoryDC = CreateCompatibleDC(NULL);
             m_hPopupMemoryDC = CreateCompatibleDC(NULL);
-            ppx::base::Random random;
-            m_iRandomID = random.Rand(0xFFFFFFFF);
+
+            srand(time(NULL));
+            m_iRandomID = rand();
         }
 
         ~CCefUIImpl() {
@@ -103,7 +101,7 @@ namespace DuiLib {
             m_strInitUrl = m_pParent->GetUrl();
 
             CefBrowserHost::CreateBrowser(window_info, m_ClientHandler,
-                                          ppx::base::UnicodeToUtf8(m_strInitUrl.GetData()), browser_settings, request_context);
+                                          UnicodeToUtf8(m_strInitUrl.GetData()), browser_settings, request_context);
         }
 
         void CloseBrowser() {
@@ -115,7 +113,7 @@ namespace DuiLib {
         void SetUrl(const CDuiString &url) {
             if (m_browser) {
                 if (m_browser->GetMainFrame()) {
-                    m_browser->GetMainFrame()->LoadURL(ppx::base::UnicodeToUtf8(m_pParent->GetUrl().GetData()).c_str());
+                    m_browser->GetMainFrame()->LoadURL(UnicodeToUtf8(m_pParent->GetUrl().GetData()).c_str());
                 }
             }
         }
@@ -206,7 +204,7 @@ namespace DuiLib {
 
                 if (m_pParent->GetUrl() != m_strInitUrl) {
                     if (m_browser->GetMainFrame()) {
-                        m_browser->GetMainFrame()->LoadURL(ppx::base::UnicodeToUtf8(m_pParent->GetUrl().GetData()).c_str());
+                        m_browser->GetMainFrame()->LoadURL(UnicodeToUtf8(m_pParent->GetUrl().GetData()).c_str());
                     }
                 }
             }
@@ -529,7 +527,7 @@ namespace DuiLib {
 
             if (m_pParent->GetUrl().GetLength() > 0 && m_browser) {
                 if (m_browser->GetMainFrame()) {
-                    m_browser->GetMainFrame()->LoadURL(ppx::base::UnicodeToUtf8(m_pParent->GetUrl().GetData()).c_str());
+                    m_browser->GetMainFrame()->LoadURL(UnicodeToUtf8(m_pParent->GetUrl().GetData()).c_str());
                 }
             }
         }
@@ -871,7 +869,7 @@ namespace DuiLib {
         int m_iViewMemoryBitmapHeight;
         int m_iViewWidth;
         int m_iViewHeight;
-        ppx::base::CriticalSection m_csPopupBuf;
+        CriticalSection m_csPopupBuf;
 
 
         // Popup
@@ -882,7 +880,7 @@ namespace DuiLib {
         int m_iPopupMemoryBitmapHeight;
         CefRect m_OriginPopupRect;
         CefRect m_PopupRect;
-        ppx::base::CriticalSection m_csViewBuf;
+        CriticalSection m_csViewBuf;
 
 
         CDuiString m_strInitUrl;

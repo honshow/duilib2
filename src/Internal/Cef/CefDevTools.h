@@ -15,7 +15,6 @@
 #define DUILIB_CEF_DEVTOOLS_H_
 #pragma once
 #ifdef UILIB_WITH_CEF
-#include "ppxbase/criticalsection.h"
 #include "CefHandler.h"
 
 namespace DuiLib {
@@ -80,7 +79,7 @@ namespace DuiLib {
             int m_iViewMemoryBitmapHeight;
             int m_iViewWidth;
             int m_iViewHeight;
-            ppx::base::CriticalSection m_csPopupBuf;
+            CriticalSection m_csPopupBuf;
 
 
             // Popup
@@ -91,7 +90,7 @@ namespace DuiLib {
             int m_iPopupMemoryBitmapHeight;
             CefRect m_OriginPopupRect;
             CefRect m_PopupRect;
-            ppx::base::CriticalSection m_csViewBuf;
+            CriticalSection m_csViewBuf;
 
             // Mouse state tracking.
             POINT last_mouse_pos_;

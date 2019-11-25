@@ -1,6 +1,5 @@
 ﻿#include "StdAfx.h"
 #include "Utils.h"
-#include "ppxbase/stringencode.h"
 
 namespace DuiLib {
 
@@ -833,4 +832,345 @@ namespace DuiLib {
 		return *this;
 	}
 
+
+    std::string UnicodeToAnsi(const std::wstring &str, unsigned int code_page /*= 0*/) {
+        std::string strRes;
+        int iSize = ::WideCharToMultiByte(code_page, 0, str.c_str(), -1, NULL, 0, NULL, NULL);
+
+        if (iSize == 0)
+            return strRes;
+
+        char *szBuf = new (std::nothrow) char[iSize];
+
+        if (!szBuf)
+            return strRes;
+
+        memset(szBuf, 0, iSize);
+
+        ::WideCharToMultiByte(code_page, 0, str.c_str(), -1, szBuf, iSize, NULL, NULL);
+
+        strRes = szBuf;
+        delete[] szBuf;
+
+        return strRes;
+    }
+
+    std::wstring AnsiToUnicode(const std::string &str, unsigned int code_page /*= 0*/) {
+        std::wstring strRes;
+
+        int iSize = ::MultiByteToWideChar(code_page, 0, str.c_str(), -1, NULL, 0);
+
+        if (iSize == 0)
+            return strRes;
+
+        wchar_t *szBuf = new (std::nothrow) wchar_t[iSize];
+
+        if (!szBuf)
+            return strRes;
+
+        memset(szBuf, 0, iSize * sizeof(wchar_t));
+
+        ::MultiByteToWideChar(code_page, 0, str.c_str(), -1, szBuf, iSize);
+
+        strRes = szBuf;
+        delete[] szBuf;
+
+        return strRes;
+    }
+
+    std::string UnicodeToUtf8(const std::wstring &str) {
+        std::string strRes;
+
+        int iSize = ::WideCharToMultiByte(CP_UTF8, 0, str.c_str(), -1, NULL, 0, NULL, NULL);
+
+        if (iSize == 0)
+            return strRes;
+
+        char *szBuf = new (std::nothrow) char[iSize];
+
+        if (!szBuf)
+            return strRes;
+
+        memset(szBuf, 0, iSize);
+
+        ::WideCharToMultiByte(CP_UTF8, 0, str.c_str(), -1, szBuf, iSize, NULL, NULL);
+
+        strRes = szBuf;
+        delete[] szBuf;
+
+        return strRes;
+    }
+
+    std::string UnicodeToUtf8BOM(const std::wstring &str) {
+        std::string strRes;
+
+        int iSize = ::WideCharToMultiByte(CP_UTF8, 0, str.c_str(), -1, NULL, 0, NULL, NULL);
+
+        if (iSize == 0)
+            return strRes;
+
+        char *szBuf = new (std::nothrow) char[iSize + 3];
+
+        if (!szBuf)
+            return strRes;
+
+        memset(szBuf, 0, iSize + 3);
+
+        ::WideCharToMultiByte(CP_UTF8, 0, str.c_str(), -1, &szBuf[3], iSize, NULL, NULL);
+        szBuf[0] = 0xef;
+        szBuf[1] = 0xbb;
+        szBuf[2] = 0xbf;
+
+        strRes = szBuf;
+        delete[] szBuf;
+
+        return strRes;
+    }
+
+
+    std::wstring Utf8ToUnicode(const std::string &str) {
+        std::wstring strRes;
+        int iSize = ::MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, NULL, 0);
+
+        if (iSize == 0)
+            return strRes;
+
+        wchar_t *szBuf = new (std::nothrow) wchar_t[iSize];
+
+        if (!szBuf)
+            return strRes;
+
+        memset(szBuf, 0, iSize * sizeof(wchar_t));
+        ::MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, szBuf, iSize);
+
+        strRes = szBuf;
+        delete[] szBuf;
+
+        return strRes;
+    }
+
+    std::string AnsiToUtf8(const std::string &str, unsigned int code_page /*= 0*/) {
+        return UnicodeToUtf8(AnsiToUnicode(str, code_page));
+    }
+
+    std::string AnsiToUtf8BOM(const std::string &str, unsigned int code_page /* = 0*/) {
+        return UnicodeToUtf8BOM(AnsiToUnicode(str, code_page));
+    }
+
+    std::string Utf8ToAnsi(const std::string &str, unsigned int code_page /*= 0*/) {
+        return UnicodeToAnsi(Utf8ToUnicode(str), code_page);
+    }
+
+
+    CriticalSection::CriticalSection() {
+        InitializeCriticalSection(&crit_);
+    }
+    CriticalSection::~CriticalSection() {
+        DeleteCriticalSection(&crit_);
+    }
+    void CriticalSection::Enter() const {
+        EnterCriticalSection(&crit_);
+    }
+    void CriticalSection::Leave() const {
+        LeaveCriticalSection(&crit_);
+    }
+
+    bool CriticalSection::TryEnter() const {
+        return TryEnterCriticalSection(&crit_) != FALSE;
+    }
+
+    CritScope::CritScope(const CriticalSection *pCS) : crit_(pCS) {
+        crit_->Enter();
+    }
+
+    CritScope::~CritScope() {
+        crit_->Leave();
+    }
+
+    std::wstring GetCurrentProcessDirectoryW() {
+        wchar_t szPath[MAX_PATH] = { 0 };
+        GetModuleFileNameW(NULL, szPath, MAX_PATH);
+        PathRemoveFileSpecW(szPath);
+        PathAddBackslashW(szPath);
+        return szPath;
+    }
+
+    std::string GetCurrentProcessDirectoryA() {
+        char szPath[MAX_PATH] = { 0 };
+        GetModuleFileNameA(NULL, szPath, MAX_PATH);
+        PathRemoveFileSpecA(szPath);
+        PathAddBackslashA(szPath);
+        return szPath;
+    }
+
+    void TraceMsgW(const wchar_t *lpFormat, ...) {
+        if (!lpFormat)
+            return;
+
+        wchar_t *pMsgBuffer = NULL;
+        unsigned int iMsgBufCount = 0;
+
+        va_list arglist;
+        va_start(arglist, lpFormat);
+        HRESULT hr = STRSAFE_E_INSUFFICIENT_BUFFER;
+
+        while (hr == STRSAFE_E_INSUFFICIENT_BUFFER) {
+            iMsgBufCount += 1024;
+
+            if (pMsgBuffer) {
+                free(pMsgBuffer);
+                pMsgBuffer = NULL;
+            }
+
+            pMsgBuffer = (wchar_t *)malloc(iMsgBufCount * sizeof(wchar_t));
+
+            if (!pMsgBuffer) {
+                break;
+            }
+
+            hr = StringCchVPrintfW(pMsgBuffer, iMsgBufCount, lpFormat, arglist);
+        }
+
+        va_end(arglist);
+
+        if (hr == S_OK) {
+            if (pMsgBuffer)
+                OutputDebugStringW(pMsgBuffer);
+        }
+
+        if (pMsgBuffer) {
+            free(pMsgBuffer);
+            pMsgBuffer = NULL;
+        }
+    }
+
+    void TraceMsgA(const char *lpFormat, ...) {
+        if (!lpFormat)
+            return;
+
+        char *pMsgBuffer = NULL;
+        unsigned int iMsgBufCount = 0;
+
+        va_list arglist;
+        va_start(arglist, lpFormat);
+        HRESULT hr = STRSAFE_E_INSUFFICIENT_BUFFER;
+
+        while (hr == STRSAFE_E_INSUFFICIENT_BUFFER) {
+            iMsgBufCount += 1024;
+
+            if (pMsgBuffer) {
+                free(pMsgBuffer);
+                pMsgBuffer = NULL;
+            }
+
+            pMsgBuffer = (char *)malloc(iMsgBufCount * sizeof(char));
+
+            if (!pMsgBuffer) {
+                break;
+            }
+
+            hr = StringCchVPrintfA(pMsgBuffer, iMsgBufCount, lpFormat, arglist);
+        }
+
+        va_end(arglist);
+
+        if (hr == S_OK) {
+            if (pMsgBuffer)
+                OutputDebugStringA(pMsgBuffer);
+        }
+
+        if (pMsgBuffer) {
+            free(pMsgBuffer);
+            pMsgBuffer = NULL;
+        }
+    }
+
+
+    BOOL UIPIMsgFilter(HWND hWnd, UINT uMessageID, BOOL bAllow) {
+        OSVERSIONINFO VersionTmp;
+        VersionTmp.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+        GetVersionEx(&VersionTmp);
+        BOOL res = FALSE;
+
+        if (VersionTmp.dwMajorVersion >= 6) { // vista above.
+            BOOL(WINAPI * pfnChangeMessageFilterEx)(HWND, UINT, DWORD, PCHANGEFILTERSTRUCT);
+            BOOL(WINAPI * pfnChangeMessageFilter)(UINT, DWORD);
+
+            CHANGEFILTERSTRUCT filterStatus;
+            filterStatus.cbSize = sizeof(CHANGEFILTERSTRUCT);
+
+            HINSTANCE hlib = LoadLibrary(_T("user32.dll"));
+
+            if (hlib != NULL) {
+                (FARPROC &)pfnChangeMessageFilterEx = GetProcAddress(hlib, "ChangeWindowMessageFilterEx");
+
+                if (pfnChangeMessageFilterEx != NULL && hWnd != NULL) {
+                    res = pfnChangeMessageFilterEx(hWnd, uMessageID, (bAllow ? MSGFLT_ADD : MSGFLT_REMOVE), &filterStatus);
+                }
+
+                // If failed, try again.
+                if (!res) {
+                    (FARPROC &)pfnChangeMessageFilter = GetProcAddress(hlib, "ChangeWindowMessageFilter");
+
+                    if (pfnChangeMessageFilter != NULL) {
+                        res = pfnChangeMessageFilter(uMessageID, (bAllow ? MSGFLT_ADD : MSGFLT_REMOVE));
+                    }
+                }
+            }
+
+            if (hlib != NULL) {
+                FreeLibrary(hlib);
+            }
+        } else {
+            res = TRUE;
+        }
+
+        return res;
+    }
+
+
+    TimerBase::TimerBase() {
+        m_hTimer = NULL;
+        m_pTimer = NULL;
+    }
+
+    TimerBase::~TimerBase() {
+
+    }
+
+    void CALLBACK TimerBase::TimerProc(void *param, BOOLEAN timerCalled) {
+        UNREFERENCED_PARAMETER(timerCalled);
+        TimerBase *timer = static_cast<TimerBase *>(param);
+
+        timer->OnTimedEvent();
+    }
+
+    BOOL TimerBase::Start(DWORD ulInterval,  // ulInterval in ms
+        BOOL bImmediately,
+        BOOL bOnce,
+        ULONG dwFlags /* = WT_EXECUTELONGFUNCTION */) {
+        BOOL bRet = FALSE;
+
+        if (!m_hTimer) {
+            bRet = CreateTimerQueueTimer(&m_hTimer,
+                NULL,
+                TimerProc,
+                (PVOID)this,
+                bImmediately ? 0 : ulInterval,
+                bOnce ? 0 : ulInterval,
+                dwFlags);
+        }
+
+        return bRet;
+    }
+
+    void TimerBase::Stop(bool bWait) {
+        if (m_hTimer) {
+            DeleteTimerQueueTimer(NULL, m_hTimer, bWait ? INVALID_HANDLE_VALUE : NULL);
+            m_hTimer = NULL;
+        }
+    }
+
+    void TimerBase::OnTimedEvent() {
+    }
 } // namespace DuiLib

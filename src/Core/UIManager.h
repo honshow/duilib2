@@ -1,5 +1,8 @@
 ﻿#ifndef __UIMANAGER_H__
 #define __UIMANAGER_H__
+#include <queue>
+#include <mutex>
+#include <functional>
 
 #pragma once
 #define WM_USER_SET_DPI WM_USER + 200
@@ -177,6 +180,9 @@ namespace DuiLib {
 		~CPaintManagerUI();
 
 	public:
+        static std::queue< std::function<void()> > UIWorks;
+        static std::mutex UIWorksMutex;
+
 		void Init(HWND hWnd, LPCTSTR pstrName = NULL);
 		bool IsUpdateNeeded() const;
 		void NeedUpdate();

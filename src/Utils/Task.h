@@ -1,13 +1,30 @@
 ﻿#ifndef __THREAD_UI_TASK_H__
 #define __THREAD_UI_TASK_H__
 #pragma once
-#include "ppxbase/bind.h"
-#include "ppxbase/callback.h"
+
+#include <future>
+#include <functional>
 
 namespace DuiLib {
     UILIB_API bool IsInUIThread();
 
-    UILIB_API void PostTaskToUIThread(ppx::base::Closure c);
+    template<class F, class... Args>
+    UILIB_API auto PostTaskToUIThread(F&& f, Args&&... args)
+        ->std::future<typename std::result_of<F(Args...)>::type> {
+        using return_type = typename std::result_of<F(Args...)>::type;
+
+        auto task = std::make_shared< std::packaged_task<return_type()> >(
+            std::bind(std::forward<F>(f), std::forward<Args>(args)...)
+            );
+
+        std::future<return_type> res = task->get_future();
+        {
+            std::unique_lock<std::mutex> lock(CPaintManagerUI::UIWorksMutex);
+            CPaintManagerUI::UIWorks.emplace([task]() { (*task)(); });
+        }
+        return res;
+    }
+
 }
 
 #endif // !__THREAD_UI_TASK_H__

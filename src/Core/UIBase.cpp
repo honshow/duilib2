@@ -212,30 +212,27 @@ namespace DuiLib {
         MSG msg = { 0 };
 
         while( ::IsWindow(m_hWnd) && ::GetMessage(&msg, NULL, 0, 0) ) {
-            if (msg.hwnd == NULL && msg.message == UIMSG_THREADMSG && msg.lParam == UIMSG_THREADMSG) { // Thread Message
-                ppx::base::Closure *p = (ppx::base::Closure *)(msg.wParam);
-                if (p) {
-                    if (!p->is_null())
-                        p->Run();
-
-                    delete p;
-                    p = NULL;
+            {
+                std::unique_lock<std::mutex> lock(CPaintManagerUI::UIWorksMutex);
+                while (!CPaintManagerUI::UIWorks.empty()) {
+                    std::function<void()> task = std::move(CPaintManagerUI::UIWorks.front());
+                    CPaintManagerUI::UIWorks.pop();
+                    task();
                 }
-            } else {
-                if (msg.message == WM_CLOSE && msg.hwnd == m_hWnd) {
-                    nRet = msg.wParam;
-                    ::EnableWindow(hWndParent, TRUE);
-                    ::SetFocus(hWndParent);
-                }
-
-                if (!CPaintManagerUI::TranslateMessage(&msg)) {
-                    ::TranslateMessage(&msg);
-                    ::DispatchMessage(&msg);
-                }
-
-                if (msg.message == WM_QUIT)
-                    break;
             }
+            if (msg.message == WM_CLOSE && msg.hwnd == m_hWnd) {
+                nRet = msg.wParam;
+                ::EnableWindow(hWndParent, TRUE);
+                ::SetFocus(hWndParent);
+            }
+
+            if (!CPaintManagerUI::TranslateMessage(&msg)) {
+                ::TranslateMessage(&msg);
+                ::DispatchMessage(&msg);
+            }
+
+            if (msg.message == WM_QUIT)
+                break;
         }
 
         ::EnableWindow(hWndParent, TRUE);

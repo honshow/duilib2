@@ -1,7 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "UIFlash.h"
 #include <atlcomcli.h>
-#include "ppxbase/stringencode.h"
 
 #define DISPID_FLASHEVENT_FLASHCALL  ( 0x00C5 )
 #define DISPID_FLASHEVENT_FSCOMMAND  ( 0x0096 )
@@ -256,7 +255,7 @@ namespace DuiLib {
                         hz = (HZIP)CPaintManagerUI::GetResourceZipHandle();
                     } else {
 #ifdef UNICODE
-                        std::string pwd = ppx::base::UnicodeToAnsi(sFilePwd.GetData());
+                        std::string pwd = UnicodeToAnsi(sFilePwd.GetData());
                         hz = OpenZip(sFile, pwd.c_str());
 #else
                         hz = OpenZip(sFile, sFilePwd);

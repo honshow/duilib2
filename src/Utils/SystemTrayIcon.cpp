@@ -1,8 +1,6 @@
 ﻿#include "Stdafx.h"
 #include <assert.h>
 #include "Utils/SystemTrayIcon.h"
-#include "ppxbase/process_util.h"
-#include "ppxbase/logging.h"
 using namespace std;
 
 namespace DuiLib {
@@ -75,7 +73,7 @@ namespace DuiLib {
         if (!m_bHidden) {
             bResult = Shell_NotifyIcon(NIM_ADD, &m_tnd);
             if (!bResult) {
-                ppx::base::TraceMsgW(L"DuiLib Shell_NotifyIcon failed with %lu\n", GetLastError());
+                TraceMsgW(L"DuiLib Shell_NotifyIcon failed with %lu\n", GetLastError());
             }
             m_bHidden = m_bRemoved = !bResult;
         }
@@ -94,7 +92,7 @@ namespace DuiLib {
 
     UINT CSystemTrayIcon::RegisterTaskbarCreatedMessage(HWND h) {
         UINT msg = ::RegisterWindowMessage(_T("TaskbarCreated"));
-        ppx::base::UIPIMsgFilter(h, msg, TRUE);
+        UIPIMsgFilter(h, msg, TRUE);
         return msg;
     }
 

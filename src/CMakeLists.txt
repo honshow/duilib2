@@ -185,16 +185,6 @@ if(UILIB_WITH_CEF)
 	add_dependencies(${LIB_NAME} libcef_dll_wrapper_2623)
 endif()
 
-# PPXBASE
-find_package(ppxbase REQUIRED)
-if(BUILD_SHARED_LIBS)
-	target_link_libraries(${LIB_NAME} PUBLIC 
-		ppxbase)
-else()
-	target_link_libraries(${LIB_NAME} PUBLIC 
-		ppxbase-static)
-endif()
-
 
 if(UILIB_WITH_CEF)
 	target_link_libraries(${LIB_NAME} PRIVATE

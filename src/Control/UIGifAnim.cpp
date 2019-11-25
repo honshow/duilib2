@@ -1,6 +1,5 @@
 ﻿#include "StdAfx.h"
 #include "UIGifAnim.h"
-#include "ppxbase/timer.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////
 namespace DuiLib {
@@ -9,7 +8,7 @@ namespace DuiLib {
 		Impl() {
 		}
 
-		ppx::base::Timer m_Timer;
+		Timer m_Timer;
 	};
     IMPLEMENT_DUICONTROL(CGifAnimUI)
 

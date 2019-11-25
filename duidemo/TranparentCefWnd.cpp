@@ -64,6 +64,6 @@ void CTranparentCEFWnd::InitWindow()
 	m_pCef = static_cast<CCefUI*>(m_PaintManager.FindControl(TEXT("cef")));
 
 	if (m_pCef) {
-		m_pCef->SetUrl((ppx::base::GetCurrentProcessDirectoryW() +  TEXT("../../../test-resource/lrc.html")).c_str());
+		m_pCef->SetUrl((GetCurrentProcessDirectoryW() +  TEXT("../../../test-resource/lrc.html")).c_str());
 	}
 }

@@ -14,13 +14,12 @@
 #ifndef DUILIB_GLOBAL_CONTEXT_H_
 #define DUILIB_GLOBAL_CONTEXT_H_
 #pragma once
-#ifdef UILIB_WITH_CEF
-#include "ppxbase/singleton.h"
 #include "include/base/cef_scoped_ptr.h"
 #include "include/base/cef_thread_checker.h"
 #include "include/cef_app.h"
+#include "Utils/Utils.h"
 
-class CefGlobalContext : public ppx::base::Singleton<CefGlobalContext> {
+class CefGlobalContext : public DuiLib::Singleton<CefGlobalContext> {
   public:
     void SetCefApp(CefRefPtr<CefApp> app);
     CefRefPtr<CefApp> GetCefApp() const;
@@ -45,6 +44,5 @@ class CefGlobalContext : public ppx::base::Singleton<CefGlobalContext> {
     SINGLETON_CLASS_DECLARE(CefGlobalContext);
 };
 
-#endif
 
 #endif // !DUILIB_GLOBAL_CONTEXT_H_

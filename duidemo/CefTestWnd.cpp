@@ -1,5 +1,6 @@
 ﻿#include "StdAfx.h"
 #include "CefTestWnd.h"
+#include <sstream>
 
 CefTestWnd::CefTestWnd() :
 	btn_go_back_1_(nullptr)
@@ -115,30 +116,19 @@ void CefTestWnd::OnWindowInit() {
 	btn_min_ = static_cast<CButtonUI*>(m_PaintManager.FindControl(TEXT("btnMin")));
 	btn_close_ = static_cast<CButtonUI*>(m_PaintManager.FindControl(TEXT("btnClose")));
 
+    web2_->SetUrl(L"https://pinyin.sogou.com/");
 
-	//web1_->SetUrl(TEXT("https://pinyin.sogou.com/"));
-	//web2_->SetUrl((ppx::base::GetCurrentProcessDirectoryW() + L"..\\..\\..\\test-resource\\test.html").c_str());
-    web2_->SetUrl(L"https://stb-front-test.steamboxs.com/Game/Shop");
-
-
-	//web1_->SetResourceResponseCallback([](const std::string &url, int status) {
-	//	ppx::base::TraceMsgA("web1: %s [%d]\n", url.c_str(), status);
-	//});
-
-	//web2_->SetResourceResponseCallback([](const std::string &url, int status) {
-	//	ppx::base::TraceMsgA("web2: %s [%d]\n", url.c_str(), status);
-	//});
 
 	web2_->SetJSCallback([this](const std::string &businessName, const std::vector<CLiteVariant>& vars) {
 		std::stringstream ss;
 		ss << "business name: " << businessName << std::endl;
 		for (auto it : vars) {
 			if (it.IsString())
-				ss << ppx::base::Utf8ToAnsi(it.GetString()) << std::endl;
+				ss << Utf8ToAnsi(it.GetString()) << std::endl;
 			else
 				ss << it.GetInt() << std::endl;
 		}
-		PPX_LOG(LS_INFO) << ss.str();
+        DuiLib::TraceMsgA("%s", ss.str().c_str());
 	});
 }
 
