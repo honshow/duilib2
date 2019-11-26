@@ -36,5 +36,5 @@ CMake脚本会默认下载[winsoft666 cef_binary](https://github.com/winsoft666/
 - 优化：CEF采用GDI绘制，保证客户端兼容性
 - 优化：任务栏托盘，提供任务栏重启重新创建托盘图标的功能
 - 修复：flash控件显示异常，及无法与C++交互的问题
-
+- 新增：CMake支持
 
