@@ -990,6 +990,7 @@ namespace DuiLib {
         } else if (event.Type == UIEVENT_SETFOCUS || event.Type == UIEVENT_KILLFOCUS) {
             m_pImpl->OnFocus(event.Type == UIEVENT_SETFOCUS);
         }
+        CContainerUI::DoEvent(event);
     }
 
     bool CCefUI::GetBkTransparent() const {
