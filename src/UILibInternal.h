@@ -60,7 +60,6 @@
 #include "Utils/VersionHelpers.h"
 #include "Utils/UIShadow.h"
 #include "Utils/UIDelegate.h"
-#include "Utils/DragDropImpl.h"
 #include "Utils/SystemTrayIcon.h"
 #include "Utils/DPI.h"
 #include "Utils/Color.h"

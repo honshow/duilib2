@@ -173,7 +173,7 @@ namespace DuiLib {
 	//
 	typedef CControlUI* (*LPCREATECONTROL)(LPCTSTR pstrType);
 
-	class UILIB_API CPaintManagerUI : public CIDropTarget
+	class UILIB_API CPaintManagerUI
 	{
 	public:
 		CPaintManagerUI();
@@ -322,10 +322,6 @@ namespace DuiLib {
 		void RemoveAllStyle(bool bShared = false);
 
 		const TImageInfo* GetImageString(LPCTSTR pStrImage, LPCTSTR pStrModify = NULL);
-
-		// 初始化拖拽
-		bool InitDragDrop();
-		virtual bool OnDrop(FORMATETC* pFmtEtc, STGMEDIUM& medium,DWORD *pdwEffect);
 
 		bool AttachDialog(CControlUI* pControl);
 		bool InitControls(CControlUI* pControl, CControlUI* pParent = NULL);

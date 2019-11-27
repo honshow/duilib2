@@ -483,9 +483,6 @@ namespace DuiLib {
             m_hDcPaint = ::GetDC(hWnd);
             m_aPreMessages.Add(this);
         }
-
-        SetTargetWnd(hWnd);
-        InitDragDrop();
     }
 
     void CPaintManagerUI::DeletePtr(void *ptr) {
@@ -1641,65 +1638,6 @@ namespace DuiLib {
                 CControlUI *pNewHover = FindControl(pt);
 
                 if( pNewHover != NULL && pNewHover->GetManager() != this ) break;
-
-                // 拖拽事件
-                if(bNeedDrag && m_bDragMode && wParam == MK_LBUTTON) {
-                    ::ReleaseCapture();
-                    CIDropSource *pdsrc = new CIDropSource;
-
-                    if(pdsrc == NULL) return 0;
-
-                    pdsrc->AddRef();
-
-                    CIDataObject *pdobj = new CIDataObject(pdsrc);
-
-                    if(pdobj == NULL) return 0;
-
-                    pdobj->AddRef();
-
-                    FORMATETC fmtetc = {0};
-                    STGMEDIUM medium = {0};
-                    fmtetc.dwAspect = DVASPECT_CONTENT;
-                    fmtetc.lindex = -1;
-                    //////////////////////////////////////
-                    fmtetc.cfFormat = CF_BITMAP;
-                    fmtetc.tymed = TYMED_GDI;
-                    medium.tymed = TYMED_GDI;
-                    HBITMAP hBitmap = (HBITMAP)OleDuplicateData(m_hDragBitmap, fmtetc.cfFormat, NULL);
-                    medium.hBitmap = hBitmap;
-                    pdobj->SetData(&fmtetc, &medium, FALSE);
-                    //////////////////////////////////////
-                    BITMAP bmap;
-                    GetObject(hBitmap, sizeof(BITMAP), &bmap);
-                    RECT rc = {0, 0, bmap.bmWidth, bmap.bmHeight};
-                    fmtetc.cfFormat = CF_ENHMETAFILE;
-                    fmtetc.tymed = TYMED_ENHMF;
-                    HDC hMetaDC = CreateEnhMetaFile(m_hDcPaint, NULL, NULL, NULL);
-                    HDC hdcMem = CreateCompatibleDC(m_hDcPaint);
-                    HGDIOBJ hOldBmp = ::SelectObject(hdcMem, hBitmap);
-                    ::BitBlt(hMetaDC, 0, 0, rc.right, rc.bottom, hdcMem, 0, 0, SRCCOPY);
-                    ::SelectObject(hdcMem, hOldBmp);
-                    medium.hEnhMetaFile = CloseEnhMetaFile(hMetaDC);
-                    DeleteDC(hdcMem);
-                    medium.tymed = TYMED_ENHMF;
-                    pdobj->SetData(&fmtetc, &medium, TRUE);
-                    //////////////////////////////////////
-                    CDragSourceHelper dragSrcHelper;
-                    POINT ptDrag = {0};
-                    ptDrag.x = bmap.bmWidth / 2;
-                    ptDrag.y = bmap.bmHeight / 2;
-                    dragSrcHelper.InitializeFromBitmap(hBitmap, ptDrag, rc, pdobj); //will own the bmp
-                    DWORD dwEffect;
-                    HRESULT hr = ::DoDragDrop(pdobj, pdsrc, DROPEFFECT_COPY | DROPEFFECT_MOVE, &dwEffect);
-
-                    if(dwEffect )
-                        pdsrc->Release();
-
-                    delete pdsrc;
-                    pdobj->Release();
-                    m_bDragMode = false;
-                    break;
-                }
 
                 TEventUI event = { 0 };
                 event.ptMouse = pt;
@@ -4333,32 +4271,6 @@ namespace DuiLib {
         return GetImageEx(sImageName, sImageResType, dwMask);
     }
 
-    bool CPaintManagerUI::InitDragDrop() {
-        AddRef();
-
-        if(FAILED(RegisterDragDrop(m_hWndPaint, this))) { //calls addref
-            DWORD dwError = GetLastError();
-            return false;
-        } else Release(); //i decided to AddRef explicitly after new
-
-        FORMATETC ftetc = {0};
-        ftetc.cfFormat = CF_BITMAP;
-        ftetc.dwAspect = DVASPECT_CONTENT;
-        ftetc.lindex = -1;
-        ftetc.tymed = TYMED_GDI;
-        AddSuportedFormat(ftetc);
-        ftetc.cfFormat = CF_DIB;
-        ftetc.tymed = TYMED_HGLOBAL;
-        AddSuportedFormat(ftetc);
-        ftetc.cfFormat = CF_HDROP;
-        ftetc.tymed = TYMED_HGLOBAL;
-        AddSuportedFormat(ftetc);
-        ftetc.cfFormat = CF_ENHMETAFILE;
-        ftetc.tymed = TYMED_ENHMF;
-        AddSuportedFormat(ftetc);
-        return true;
-    }
-
     static WORD DIBNumColors(void *pv) {
         int bits;
         LPBITMAPINFOHEADER  lpbi;
@@ -4406,117 +4318,5 @@ namespace DuiLib {
                 return (WORD)(DIBNumColors (lpbih) * sizeof (RGBQUAD));
         } else
             return (WORD)(DIBNumColors (lpbih) * sizeof (RGBTRIPLE));
-    }
-
-    bool CPaintManagerUI::OnDrop(FORMATETC *pFmtEtc, STGMEDIUM &medium, DWORD *pdwEffect) {
-        POINT ptMouse = {0};
-        GetCursorPos(&ptMouse);
-        ::SendMessage(m_hTargetWnd, WM_LBUTTONUP, NULL, MAKELPARAM(ptMouse.x, ptMouse.y));
-
-        if(pFmtEtc->cfFormat == CF_DIB && medium.tymed == TYMED_HGLOBAL) {
-            if(medium.hGlobal != NULL) {
-                LPBITMAPINFOHEADER  lpbi = (BITMAPINFOHEADER *)GlobalLock(medium.hGlobal);
-
-                if(lpbi != NULL) {
-                    HBITMAP hbm = NULL;
-                    HDC hdc = GetDC(NULL);
-
-                    if(hdc != NULL) {
-                        int i = ((BITMAPFILEHEADER *)lpbi)->bfOffBits;
-                        hbm = CreateDIBitmap(hdc, (LPBITMAPINFOHEADER)lpbi,
-                                             (LONG)CBM_INIT,
-                                             (LPSTR)lpbi + lpbi->biSize + ColorTableSize(lpbi),
-                                             (LPBITMAPINFO)lpbi, DIB_RGB_COLORS);
-
-                        ::ReleaseDC(NULL, hdc);
-                    }
-
-                    GlobalUnlock(medium.hGlobal);
-
-                    if(hbm != NULL)
-                        hbm = (HBITMAP)SendMessage(m_hTargetWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hbm);
-
-                    if(hbm != NULL)
-                        DeleteObject(hbm);
-
-                    return true; //release the medium
-                }
-            }
-        }
-
-        if(pFmtEtc->cfFormat == CF_BITMAP && medium.tymed == TYMED_GDI) {
-            if(medium.hBitmap != NULL) {
-                HBITMAP hBmp = (HBITMAP)SendMessage(m_hTargetWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)medium.hBitmap);
-
-                if(hBmp != NULL)
-                    DeleteObject(hBmp);
-
-                return false; //don't free the bitmap
-            }
-        }
-
-        if(pFmtEtc->cfFormat == CF_ENHMETAFILE && medium.tymed == TYMED_ENHMF) {
-            ENHMETAHEADER emh;
-            GetEnhMetaFileHeader(medium.hEnhMetaFile, sizeof(ENHMETAHEADER), &emh);
-            RECT rc;//={0,0,EnhMetaHdr.rclBounds.right-EnhMetaHdr.rclBounds.left, EnhMetaHdr.rclBounds.bottom-EnhMetaHdr.rclBounds.top};
-            HDC hDC = GetDC(m_hTargetWnd);
-            //start code: taken from ENHMETA.EXE MSDN Sample
-            //*ALSO NEED to GET the pallete (select and RealizePalette it, but i was too lazy*
-            // Get the characteristics of the output device
-            float PixelsX = (float)GetDeviceCaps( hDC, HORZRES );
-            float PixelsY = (float)GetDeviceCaps( hDC, VERTRES );
-            float MMX = (float)GetDeviceCaps( hDC, HORZSIZE );
-            float MMY = (float)GetDeviceCaps( hDC, VERTSIZE );
-            // Calculate the rect in which to draw the metafile based on the
-            // intended size and the current output device resolution
-            // Remember that the intended size is given in 0.01mm units, so
-            // convert those to device units on the target device
-            rc.top = (int)((float)(emh.rclFrame.top) * PixelsY / (MMY * 100.0f));
-            rc.left = (int)((float)(emh.rclFrame.left) * PixelsX / (MMX * 100.0f));
-            rc.right = (int)((float)(emh.rclFrame.right) * PixelsX / (MMX * 100.0f));
-            rc.bottom = (int)((float)(emh.rclFrame.bottom) * PixelsY / (MMY * 100.0f));
-            //end code: taken from ENHMETA.EXE MSDN Sample
-
-            HDC hdcMem = CreateCompatibleDC(hDC);
-            HGDIOBJ hBmpMem = CreateCompatibleBitmap(hDC, emh.rclBounds.right, emh.rclBounds.bottom);
-            HGDIOBJ hOldBmp = ::SelectObject(hdcMem, hBmpMem);
-            PlayEnhMetaFile(hdcMem, medium.hEnhMetaFile, &rc);
-            HBITMAP hBmp = (HBITMAP)::SelectObject(hdcMem, hOldBmp);
-            DeleteDC(hdcMem);
-            ReleaseDC(m_hTargetWnd, hDC);
-            hBmp = (HBITMAP)SendMessage(m_hTargetWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBmp);
-
-            if(hBmp != NULL)
-                DeleteObject(hBmp);
-
-            return true;
-        }
-
-        if(pFmtEtc->cfFormat == CF_HDROP && medium.tymed == TYMED_HGLOBAL) {
-            HDROP hDrop = (HDROP)GlobalLock(medium.hGlobal);
-
-            if(hDrop != NULL) {
-                TCHAR szFileName[MAX_PATH];
-                UINT cFiles = DragQueryFile(hDrop, 0xFFFFFFFF, NULL, 0);
-
-                if(cFiles > 0) {
-                    DragQueryFile(hDrop, 0, szFileName, sizeof(szFileName));
-                    HBITMAP hBitmap = (HBITMAP)LoadImage(NULL, szFileName, IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
-
-                    if(hBitmap) {
-                        HBITMAP hBmp = (HBITMAP)SendMessage(m_hTargetWnd, STM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBitmap);
-
-                        if(hBmp != NULL)
-                            DeleteObject(hBmp);
-                    }
-                }
-
-                //DragFinish(hDrop); // base class calls ReleaseStgMedium
-            }
-
-            GlobalUnlock(medium.hGlobal);
-        }
-
-        return true; //let base free the medium
     }
 } // namespace DuiLib
