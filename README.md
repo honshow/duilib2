@@ -32,9 +32,9 @@ CMake脚本会默认下载[winsoft666 cef_binary](https://github.com/winsoft666/
 - 修复：Groupbox的上边框不能位于文字中间的BUG。
 - 新增：新增Windows size的取值max，支持在启动时即最大化。
 - 新增：发送任务（含lamda表达式）到UI线程的功能，见`Utils\Task.h`。
-- 新增：CEF控件，使用CEF离线渲染模式
+- 新增：CEF控件，使用CEF离线渲染模式，支持背景透明，支持异形控件
 - 优化：CEF采用GDI绘制，保证客户端兼容性
 - 优化：任务栏托盘，提供任务栏重启重新创建托盘图标的功能
 - 修复：flash控件显示异常，及无法与C++交互的问题
-
+- 新增：CMake支持
 
