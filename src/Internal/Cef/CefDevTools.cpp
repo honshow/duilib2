@@ -30,6 +30,7 @@ namespace DuiLib {
             , m_pPopupBuffer(NULL)
             , m_hPopupBitmap(NULL)
             , m_hPopupMemoryDC(NULL)
+            , m_bClosed(false)
             , m_fScaleFactor(fScaleFactor) {
             m_hViewMemoryDC = CreateCompatibleDC(NULL);
             m_hPopupMemoryDC = CreateCompatibleDC(NULL);
@@ -57,7 +58,6 @@ namespace DuiLib {
 
         void CefDevToolsWnd::OnFinalMessage(HWND hWnd) {
             CWindowWnd::OnFinalMessage(hWnd);
-            delete this;
         }
 
         LRESULT CefDevToolsWnd::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -137,10 +137,9 @@ namespace DuiLib {
                     break;
                 }
                 case WM_DESTROY: {
-                    if (m_ClientHandler)
-                        m_ClientHandler->DetachDelegate();
                     if (m_browser) {
-                        m_browser->GetHost()->CloseBrowser(false);
+                        m_bClosed = true;
+                        m_browser->GetHost()->CloseBrowser(true);
                     }
 
                     break;
@@ -169,7 +168,11 @@ namespace DuiLib {
         }
 
         void CefDevToolsWnd::OnBeforeClose(CefRefPtr<CefBrowser> browser) {
+            if (m_ClientHandler)
+                m_ClientHandler->DetachDelegate();
             m_browser = nullptr;
+
+            delete this;
         }
 
         bool CefDevToolsWnd::GetRootScreenRect(CefRefPtr<CefBrowser> browser, CefRect &rect) {
@@ -181,7 +184,8 @@ namespace DuiLib {
 #else
         bool CefDevToolsWnd::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect &rect) {
             CEF_REQUIRE_UI_THREAD();
-
+            if (m_bClosed)
+                return false;
             RECT pos;
             GetClientRect(m_hWnd, &pos);
             int width = pos.right - pos.left;
@@ -201,7 +205,8 @@ namespace DuiLib {
 #endif
         bool CefDevToolsWnd::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX, int viewY, int &screenX, int &screenY) {
             CEF_REQUIRE_UI_THREAD();
-
+            if (m_bClosed)
+                return false;
             // Convert the point from view coordinates to actual screen coordinates.
             POINT screen_pt = { Internal::LogicalToDevice(viewX, m_fScaleFactor),
                                 Internal::LogicalToDevice(viewY, m_fScaleFactor)
@@ -214,7 +219,8 @@ namespace DuiLib {
 
         bool CefDevToolsWnd::GetScreenInfo(CefRefPtr<CefBrowser> browser, CefScreenInfo &screen_info) {
             CEF_REQUIRE_UI_THREAD();
-
+            if (m_bClosed)
+                return false;
             CefRect view_rect;
             GetViewRect(browser, view_rect);
 
@@ -225,6 +231,8 @@ namespace DuiLib {
         }
 
         void CefDevToolsWnd::OnPopupShow(CefRefPtr<CefBrowser> browser, bool show) {
+            if (m_bClosed)
+                return;
             if (!show) {
                 m_PopupRect.Reset();
                 browser->GetHost()->Invalidate(PET_VIEW);
@@ -232,6 +240,8 @@ namespace DuiLib {
         }
 
         void CefDevToolsWnd::OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect &rect) {
+            if (m_bClosed)
+                return;
             CefRect newRect = Internal::LogicalToDevice(rect, m_fScaleFactor);
             if (newRect.width <= 0 || newRect.height <= 0)
                 return;
@@ -284,6 +294,8 @@ namespace DuiLib {
 
         void CefDevToolsWnd::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type,
                                      const CefRenderHandler::RectList &dirtyRects, const void *buffer, int width, int height) {
+            if (m_bClosed)
+                return;
             if (type == CefRenderHandler::PaintElementType::PET_VIEW) {
                 m_csViewBuf.Enter();
 
@@ -412,6 +424,8 @@ namespace DuiLib {
         }
 
         void CefDevToolsWnd::OnMouseEvent(UINT message, WPARAM wParam, LPARAM lParam) {
+            if (m_bClosed)
+                return;
             CefRefPtr<CefBrowserHost> browser_host;
             if (m_browser)
                 browser_host = m_browser->GetHost();
@@ -598,6 +612,8 @@ namespace DuiLib {
         }
 
         void CefDevToolsWnd::OnKeyEvent(UINT message, WPARAM wParam, LPARAM lParam) {
+            if (m_bClosed)
+                return;
             if (!m_browser)
                 return;
 

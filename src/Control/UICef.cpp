@@ -50,28 +50,6 @@ namespace DuiLib {
         }
 
         ~CCefUIImpl() {
-            if (m_pDevToolsWnd) {
-                TCHAR szName[MAX_PATH];
-                StringCchPrintf(szName, MAX_PATH, TEXT("Dev Tools[%lu]"), m_iRandomID);
-                HWND h = FindWindow(TEXT("CefDevToolsWnd891$322@"), szName);
-                if (h) {
-                    m_pDevToolsWnd->Close();
-                    return;
-                }
-                m_pDevToolsWnd = NULL;
-            }
-            m_ClientHandler->DetachDelegate();
-            CloseBrowser();
-
-            if (m_hViewMemoryDC) {
-                DeleteDC(m_hViewMemoryDC);
-                m_hViewMemoryDC = NULL;
-            }
-
-            if (m_hPopupMemoryDC) {
-                DeleteDC(m_hPopupMemoryDC);
-                m_hPopupMemoryDC = NULL;
-            }
         }
 
       public:
@@ -105,8 +83,31 @@ namespace DuiLib {
         }
 
         void CloseBrowser() {
+            m_pParent = NULL;
+            if (m_pDevToolsWnd) {
+                TCHAR szName[MAX_PATH];
+                StringCchPrintf(szName, MAX_PATH, TEXT("Dev Tools[%lu]"), m_iRandomID);
+                HWND h = FindWindow(TEXT("CefDevToolsWnd891$322@"), szName);
+                if (h) {
+                    m_pDevToolsWnd->Close();
+                    return;
+                }
+                // Not Delete m_pDevToolsWnd
+                m_pDevToolsWnd = NULL;
+            }
+
             if (m_browser) {
-                m_browser->GetHost()->CloseBrowser(false);
+                m_browser->GetHost()->CloseBrowser(true);
+            }
+
+            if (m_hViewMemoryDC) {
+                DeleteDC(m_hViewMemoryDC);
+                m_hViewMemoryDC = NULL;
+            }
+
+            if (m_hPopupMemoryDC) {
+                DeleteDC(m_hPopupMemoryDC);
+                m_hPopupMemoryDC = NULL;
             }
         }
 
@@ -211,8 +212,11 @@ namespace DuiLib {
         }
 
         void OnBeforeClose(CefRefPtr<CefBrowser> browser) OVERRIDE {
+            m_ClientHandler->DetachDelegate();
             m_pParent = NULL;
             m_browser = nullptr;
+
+            delete this;
         }
 
         bool GetRootScreenRect(CefRefPtr<CefBrowser> browser, CefRect &rect) OVERRIDE {
@@ -226,6 +230,8 @@ namespace DuiLib {
         bool GetViewRect(CefRefPtr<CefBrowser> browser, CefRect &rect) OVERRIDE {
             CEF_REQUIRE_UI_THREAD();
             DCHECK(m_pParent);
+            if (!m_pParent)
+                return false;
             DCHECK(m_pParent->m_pManager);
 
             RECT pos = m_pParent->GetPos();
@@ -249,6 +255,8 @@ namespace DuiLib {
         bool GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX, int viewY, int &screenX, int &screenY) OVERRIDE {
             CEF_REQUIRE_UI_THREAD();
             DCHECK(m_pParent);
+            if (!m_pParent)
+                return false;
             DCHECK(m_pParent->m_pManager);
 
             float scale_factor = m_pParent->m_pManager->GetDPIObj()->GetScale() / 100.f;
@@ -267,6 +275,8 @@ namespace DuiLib {
         bool GetScreenInfo(CefRefPtr<CefBrowser> browser, CefScreenInfo &screen_info) OVERRIDE {
             CEF_REQUIRE_UI_THREAD();
             DCHECK(m_pParent);
+            if (!m_pParent)
+                return false;
             DCHECK(m_pParent->m_pManager);
 
             CefRect view_rect;
@@ -286,6 +296,8 @@ namespace DuiLib {
         }
 
         void OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect &rect) OVERRIDE {
+            if (!m_pParent)
+                return;
             float scale_factor = m_pParent->m_pManager->GetDPIObj()->GetScale() / 100.f;
 
             CefRect newRect = Internal::LogicalToDevice(rect, scale_factor);
@@ -317,6 +329,8 @@ namespace DuiLib {
 
         void OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type,
                      const CefRenderHandler::RectList &dirtyRects, const void *buffer, int width, int height) OVERRIDE {
+            if (!m_pParent)
+                return;
             if (type == CefRenderHandler::PaintElementType::PET_VIEW) {
                 m_csViewBuf.Enter();
 
@@ -347,7 +361,8 @@ namespace DuiLib {
                 memcpy(m_pViewBuffer, buffer, width * height * 4);
                 m_csViewBuf.Leave();
 
-                m_pParent->Invalidate();
+                if(m_pParent)
+                    m_pParent->Invalidate();
             } else if (type == CefRenderHandler::PaintElementType::PET_POPUP) {
                 m_csPopupBuf.Enter();
 
@@ -374,7 +389,8 @@ namespace DuiLib {
                 memcpy(m_pPopupBuffer, buffer, width * height * 4);
                 m_csPopupBuf.Leave();
 
-                m_pParent->Invalidate();
+                if(m_pParent)
+                    m_pParent->Invalidate();
             }
         }
 
@@ -409,6 +425,8 @@ namespace DuiLib {
 
         void OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cursor, CefRenderHandler::CursorType type, const CefCursorInfo &custom_cursor_info) OVERRIDE {
             CEF_REQUIRE_UI_THREAD();
+            if (!m_pParent)
+                return;
             HWND hwnd = m_pParent->m_pManager->GetPaintWindow();
             if (!hwnd || !::IsWindow(hwnd))
                 return;
@@ -511,6 +529,8 @@ namespace DuiLib {
         }
 
         void OnResourceResponse(const std::string url, int rsp_status) OVERRIDE {
+            if (!m_pParent)
+                return;
             if (m_pParent && m_pParent->m_ResourceRspCB) {
                 m_pParent->m_ResourceRspCB(url, rsp_status);
             }
@@ -521,6 +541,8 @@ namespace DuiLib {
         }
 
         void OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser, CefRequestHandler::TerminationStatus status) {
+            if (!m_pParent)
+                return;
             CDuiString strMsg;
             strMsg.Format(TEXT("OnRenderProcessTerminated, status: %d\n"), status);
             OutputDebugString(strMsg.GetData());
@@ -558,6 +580,8 @@ namespace DuiLib {
 
         void OnMouseEvent(UINT message, WPARAM wParam, LPARAM lParam) {
             DCHECK(m_pParent);
+            if (!m_pParent)
+                return;
             DCHECK(m_pParent->m_pManager);
             float scale_factor = m_pParent->m_pManager->GetDPIObj()->GetScale() / 100.f;
             HWND hwnd = m_pParent->m_pManager->GetPaintWindow();
@@ -912,16 +936,14 @@ namespace DuiLib {
     IMPLEMENT_DUICONTROL(CCefUI)
 
     CCefUI::CCefUI() :
-        m_pImpl(new CCefUIImpl(this))
-        , m_hCreated(false) {
-
+         m_hCreated(false) {
+        m_pImpl = new CCefUIImpl(this);
     }
 
     CCefUI::~CCefUI() {
-        if (m_pImpl) {
-            delete m_pImpl;
-            m_pImpl = NULL;
-        }
+        m_pImpl->CloseBrowser();
+
+        // Not delete m_pImpl
     }
 
     LPCTSTR CCefUI::GetClass() const {

@@ -16,6 +16,7 @@ public:
 
     void Notify(TNotifyUI& msg) override;
     void OnFinalMessage(HWND hWnd) override;
+    LRESULT ResponseDefaultKeyEvent(WPARAM wParam) override;
 private:
     void OnWindowInit();
     void Web2CallJS();

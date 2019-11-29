@@ -106,6 +106,8 @@ namespace DuiLib {
 
             CefRefPtr<Internal::ClientHandlerOsr> m_ClientHandler;
             CefRefPtr<CefBrowser> m_browser;
+
+            bool m_bClosed;
         };
     }
 }

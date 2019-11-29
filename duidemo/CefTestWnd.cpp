@@ -155,3 +155,13 @@ void CefTestWnd::Web2CallJS() {
     bool ret = web2_->CallJavascriptFunction(u8"cpp2js_test", args);
 
 }
+
+LRESULT CefTestWnd::ResponseDefaultKeyEvent(WPARAM wParam) {
+    if (wParam == VK_RETURN) {
+        return 0;
+    } else if (wParam == VK_ESCAPE) {
+        Close();
+        return 0;
+    }
+    return WindowImplBase::ResponseDefaultKeyEvent(wParam);
+}
