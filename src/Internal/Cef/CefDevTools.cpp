@@ -644,6 +644,14 @@ namespace DuiLib {
                 m_browser->GetHost()->WasResized();
         }
 
+        void CefDevToolsWnd::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefLoadHandler::ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl) {
+
+        }
+
+        void CefDevToolsWnd::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode) {
+
+        }
+
     }
 }
 #endif

@@ -48,6 +48,9 @@ namespace DuiLib {
         void SetUrl(const CDuiString &url);
         CDuiString GetUrl() const;
 
+        void SetErrorPageUrl(const CDuiString& url);
+        CDuiString GetErrorPageUrl() const;
+
         bool GetBkTransparent() const;
         int GetFPS() const;
         void SetFPS(int fps);
@@ -59,10 +62,12 @@ namespace DuiLib {
         void ShowDevTools();
         void CloseDevTools();
         bool CallJavascriptFunction(const std::string &strFuncName, const std::vector<CLiteVariant> &args);
+        bool IsErrorPage(const CDuiString &url);
       protected:
 
       protected:
         CDuiString m_strUrl;
+        CDuiString m_strErrorPageUrl;
         bool m_hCreated;
         ResourceResponseCallback m_ResourceRspCB;
         JSCallback m_JSCB;

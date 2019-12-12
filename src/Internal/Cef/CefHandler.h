@@ -59,6 +59,11 @@ namespace DuiLib {
                                                bool canGoBack,
                                                bool canGoForward) = 0;
 
+                virtual void OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, 
+                    CefLoadHandler::ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl) = 0;
+
+                virtual void OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode) = 0;
+
                 // Set the draggable regions.
                 virtual void OnSetDraggableRegions(
                     const std::vector<CefDraggableRegion> &regions) = 0;
@@ -210,6 +215,15 @@ namespace DuiLib {
             bool DoClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
             void OnBeforeClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
 
+            void OnLoadError(CefRefPtr<CefBrowser> browser,
+                CefRefPtr<CefFrame> frame,
+                ErrorCode errorCode,
+                const CefString& errorText,
+                const CefString& failedUrl) OVERRIDE;
+
+            void OnLoadEnd(CefRefPtr<CefBrowser> browser,
+                CefRefPtr<CefFrame> frame,
+                int httpStatusCode) OVERRIDE;
 
             // CefRequestHandler methods
             void OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser, TerminationStatus status) OVERRIDE;

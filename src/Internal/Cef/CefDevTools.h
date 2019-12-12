@@ -61,6 +61,9 @@ namespace DuiLib {
             void OnKeyEvent(UINT message, WPARAM wParam, LPARAM lParam);
             void OnFocus(bool setFocus);
             void OnSize();
+            void OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
+                CefLoadHandler::ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl);
+            void OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode);
           private:
             CefRect GetPopupRectInWebView(const CefRect &original_rect);
             bool IsOverPopupWidget(int x, int y) const;

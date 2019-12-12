@@ -472,6 +472,28 @@ namespace DuiLib {
         void OnSetLoadingState(bool isLoading, bool canGoBack, bool canGoForward) OVERRIDE {
         }
 
+        void OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, 
+            CefLoadHandler::ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl) {
+            if (frame->IsMain()) {
+                if (m_pParent && m_pParent->m_strErrorPageUrl.GetLength() > 0 && failedUrl.length() > 0) {
+                    if (!m_pParent->IsErrorPage(failedUrl.ToWString().c_str()))
+                        frame->LoadURL(UnicodeToUtf8(m_pParent->m_strErrorPageUrl.GetData()).c_str());
+                }
+            }
+        }
+
+        void OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode) {
+            if (httpStatusCode < 400)
+                return;
+
+            if (frame->IsMain()) {
+                if (m_pParent && m_pParent->m_strErrorPageUrl.GetLength() > 0 && frame->GetURL().ToWString().length() > 0) {
+                    if(!m_pParent->IsErrorPage(frame->GetURL().ToWString().c_str()))
+                        frame->LoadURL(UnicodeToUtf8(m_pParent->m_strErrorPageUrl.GetData()).c_str());
+                }
+            }
+        }
+
         void OnSetDraggableRegions(const std::vector<CefDraggableRegion> &regions) OVERRIDE {
         }
 
@@ -960,6 +982,8 @@ namespace DuiLib {
     void CCefUI::SetAttribute(LPCTSTR pstrName, LPCTSTR pstrValue) {
         if (_tcsicmp(pstrName, _T("url")) == 0)
             SetUrl(pstrValue);
+        else if (_tcsicmp(pstrName, _T("errorpageurl")) == 0)
+            SetErrorPageUrl(pstrValue);
         else if (_tcsicmp(pstrName, _T("transparent")) == 0)
             m_pImpl->SetBkTransparent(_tcsicmp(pstrValue, _T("true")) == 0);
         else if (_tcsicmp(pstrName, _T("fps")) == 0)
@@ -1044,6 +1068,15 @@ namespace DuiLib {
         return m_strUrl;
     }
 
+    void CCefUI::SetErrorPageUrl(const CDuiString& url) {
+        m_strErrorPageUrl = url;
+        m_strErrorPageUrl.Replace(TEXT("\\"), TEXT("/"));
+    }
+
+    DuiLib::CDuiString CCefUI::GetErrorPageUrl() const {
+        return m_strErrorPageUrl;
+    }
+
     int CCefUI::GetFPS() const {
         return m_pImpl->GetFPS();
     }
@@ -1078,6 +1111,19 @@ namespace DuiLib {
 
     bool CCefUI::CallJavascriptFunction(const std::string &strFuncName, const std::vector<CLiteVariant> &args) {
         return m_pImpl->CallJavascriptFunction(strFuncName, args);
+    }
+
+    bool CCefUI::IsErrorPage(const CDuiString &url) {
+        if (m_strErrorPageUrl.GetLength() == 0)
+            return false;
+        if (url.GetLength() == 0)
+            return false;
+
+        if (url.Find(m_strErrorPageUrl.GetData()) >= 0)
+            return true;
+        if (m_strErrorPageUrl.Find(url.GetData()) >= 0)
+            return true;
+        return false;
     }
 
     void CCefUI::SetAllowProtocols(const std::vector<std::string> vAllowProtocols) {

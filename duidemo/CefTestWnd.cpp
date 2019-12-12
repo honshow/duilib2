@@ -116,6 +116,11 @@ void CefTestWnd::OnWindowInit() {
 	btn_min_ = static_cast<CButtonUI*>(m_PaintManager.FindControl(TEXT("btnMin")));
 	btn_close_ = static_cast<CButtonUI*>(m_PaintManager.FindControl(TEXT("btnClose")));
 
+
+    web1_->SetErrorPageUrl(CPaintManagerUI::GetInstancePath() + TEXT("error_page\\index.html"));
+    web2_->SetErrorPageUrl(CPaintManagerUI::GetInstancePath() + TEXT("error_page\\index.html"));
+
+
     web2_->SetUrl(L"https://pinyin.sogou.com/");
 
 

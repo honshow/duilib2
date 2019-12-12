@@ -141,6 +141,17 @@ namespace DuiLib {
                 delegate_->OnBeforeClose(browser);
         }
 
+        void ClientHandlerOsr::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl) {
+            CEF_REQUIRE_UI_THREAD();
+            if (delegate_)
+                delegate_->OnLoadError(browser, frame, errorCode, errorText, failedUrl);
+        }
+
+        void ClientHandlerOsr::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode) {
+            if (delegate_)
+                delegate_->OnLoadEnd(browser, frame, httpStatusCode);
+        }
+
         bool ClientHandlerOsr::GetRootScreenRect(CefRefPtr<CefBrowser> browser, CefRect &rect) {
             CEF_REQUIRE_UI_THREAD();
             if (!delegate_)
