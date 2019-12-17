@@ -1123,6 +1123,16 @@ namespace DuiLib {
             return true;
         if (m_strErrorPageUrl.Find(url.GetData()) >= 0)
             return true;
+        if (url.Find(TEXT("file:")) == 0) {
+            if (url.ReverseFind(TEXT('/')) >= 0 && m_strErrorPageUrl.ReverseFind(TEXT('/')) >= 0) {
+                CDuiString fileName = url.Mid(url.ReverseFind(TEXT('/')) + 1);
+                CDuiString fileName2 = m_strErrorPageUrl.Mid(m_strErrorPageUrl.ReverseFind(TEXT('/')) + 1);
+
+                if (fileName.CompareNoCase(fileName2.GetData()) == 0)
+                    return true;
+            }
+
+        }
         return false;
     }
 
