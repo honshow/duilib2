@@ -475,8 +475,11 @@ namespace DuiLib {
         void OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, 
             CefLoadHandler::ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl) {
             if (frame->IsMain()) {
+                std::wstring strFailedUrl = failedUrl.ToWString();
+                TraceMsgW(L"OnLoadError: %s\n", strFailedUrl.c_str());
+
                 if (m_pParent && m_pParent->m_strErrorPageUrl.GetLength() > 0 && failedUrl.length() > 0) {
-                    if (!m_pParent->IsErrorPage(failedUrl.ToWString().c_str()))
+                    if (!m_pParent->IsErrorPage(strFailedUrl.c_str()))
                         frame->LoadURL(UnicodeToUtf8(m_pParent->m_strErrorPageUrl.GetData()).c_str());
                 }
             }
@@ -487,8 +490,10 @@ namespace DuiLib {
                 return;
 
             if (frame->IsMain()) {
-                if (m_pParent && m_pParent->m_strErrorPageUrl.GetLength() > 0 && frame->GetURL().ToWString().length() > 0) {
-                    if(!m_pParent->IsErrorPage(frame->GetURL().ToWString().c_str()))
+                std::wstring strFrameUrl = frame->GetURL().ToWString();
+                TraceMsgW(L"OnLoadEnd: %s\n", strFrameUrl.c_str());
+                if (m_pParent && m_pParent->m_strErrorPageUrl.GetLength() > 0 && strFrameUrl.length() > 0) {
+                    if(!m_pParent->IsErrorPage(strFrameUrl.c_str()))
                         frame->LoadURL(UnicodeToUtf8(m_pParent->m_strErrorPageUrl.GetData()).c_str());
                 }
             }
