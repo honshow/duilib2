@@ -833,7 +833,7 @@ namespace DuiLib {
 	}
 
 
-    std::string UnicodeToAnsi(const std::wstring &str, unsigned int code_page /*= 0*/) {
+    std::string Unicode2Ansi(const std::wstring &str, unsigned int code_page /*= 0*/) {
         std::string strRes;
         int iSize = ::WideCharToMultiByte(code_page, 0, str.c_str(), -1, NULL, 0, NULL, NULL);
 
@@ -855,7 +855,7 @@ namespace DuiLib {
         return strRes;
     }
 
-    std::wstring AnsiToUnicode(const std::string &str, unsigned int code_page /*= 0*/) {
+    std::wstring Ansi2Unicode(const std::string &str, unsigned int code_page /*= 0*/) {
         std::wstring strRes;
 
         int iSize = ::MultiByteToWideChar(code_page, 0, str.c_str(), -1, NULL, 0);
@@ -878,7 +878,7 @@ namespace DuiLib {
         return strRes;
     }
 
-    std::string UnicodeToUtf8(const std::wstring &str) {
+    std::string Unicode2Utf8(const std::wstring &str) {
         std::string strRes;
 
         int iSize = ::WideCharToMultiByte(CP_UTF8, 0, str.c_str(), -1, NULL, 0, NULL, NULL);
@@ -901,7 +901,7 @@ namespace DuiLib {
         return strRes;
     }
 
-    std::string UnicodeToUtf8BOM(const std::wstring &str) {
+    std::string Unicode2Utf8BOM(const std::wstring &str) {
         std::string strRes;
 
         int iSize = ::WideCharToMultiByte(CP_UTF8, 0, str.c_str(), -1, NULL, 0, NULL, NULL);
@@ -928,7 +928,7 @@ namespace DuiLib {
     }
 
 
-    std::wstring Utf8ToUnicode(const std::string &str) {
+    std::wstring Utf82Unicode(const std::string &str) {
         std::wstring strRes;
         int iSize = ::MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, NULL, 0);
 
@@ -949,16 +949,16 @@ namespace DuiLib {
         return strRes;
     }
 
-    std::string AnsiToUtf8(const std::string &str, unsigned int code_page /*= 0*/) {
-        return UnicodeToUtf8(AnsiToUnicode(str, code_page));
+    std::string Ansi2Utf8(const std::string &str, unsigned int code_page /*= 0*/) {
+        return Unicode2Utf8(Ansi2Unicode(str, code_page));
     }
 
-    std::string AnsiToUtf8BOM(const std::string &str, unsigned int code_page /* = 0*/) {
-        return UnicodeToUtf8BOM(AnsiToUnicode(str, code_page));
+    std::string Ansi2Utf8BOM(const std::string &str, unsigned int code_page /* = 0*/) {
+        return Unicode2Utf8BOM(Ansi2Unicode(str, code_page));
     }
 
-    std::string Utf8ToAnsi(const std::string &str, unsigned int code_page /*= 0*/) {
-        return UnicodeToAnsi(Utf8ToUnicode(str), code_page);
+    std::string Utf82Ansi(const std::string &str, unsigned int code_page /*= 0*/) {
+        return Unicode2Ansi(Utf82Unicode(str), code_page);
     }
 
 

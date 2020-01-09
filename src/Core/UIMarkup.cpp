@@ -413,7 +413,7 @@ namespace DuiLib {
             else {
                 CDuiString sFilePwd = CPaintManagerUI::GetResourceZipPwd();
 #ifdef UNICODE
-                std::string pwd = UnicodeToAnsi(sFilePwd.GetData());
+                std::string pwd = Unicode2Ansi(sFilePwd.GetData());
                 hz = OpenZip(sFile, pwd.c_str());
 #else
                 hz = OpenZip(sFile, sFilePwd);

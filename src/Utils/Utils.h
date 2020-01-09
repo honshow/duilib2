@@ -238,32 +238,14 @@ namespace DuiLib {
     };
 
 
-   UILIB_API std::string UnicodeToAnsi(const std::wstring &str, unsigned int code_page = 0);
-   UILIB_API std::wstring AnsiToUnicode(const std::string &str, unsigned int code_page = 0);
-   UILIB_API std::string UnicodeToUtf8(const std::wstring &str);
-   UILIB_API std::wstring Utf8ToUnicode(const std::string &str);
-   UILIB_API std::string AnsiToUtf8(const std::string &str, unsigned int code_page = 0);
-   UILIB_API std::string Utf8ToAnsi(const std::string &str, unsigned int code_page = 0);
-   UILIB_API std::string UnicodeToUtf8BOM(const std::wstring &str);
-   UILIB_API std::string AnsiToUtf8BOM(const std::string &str, unsigned int code_page = 0);
-
-
-#ifdef UNICODE
-#define TCHARToAnsi(str) UnicodeToAnsi((str), 0)
-#define TCHARToUtf8(str) UnicodeToUtf8((str))
-#define AnsiToTCHAR(str) AnsiToUnicode((str), 0)
-#define Utf8ToTCHAR(str) Utf8ToUnicode((str))
-#define TCHARToUnicode(str) ((std::wstring)(str))
-#define UnicodeToTCHAR(str) ((std::wstring)(str))
-#else
-#define TCHARToAnsi(str) ((std::string)(str))
-#define TCHARToUtf8 AnsiToUtf8((str), 0)
-#define AnsiToTCHAR(str) ((std::string)(str))
-#define Utf8ToTCHAR(str) Utf8ToAnsi((str), 0)
-#define TCHARToUnicode(str) AnsiToUnicode((str), 0)
-#define UnicodeToTCHAR(str) UnicodeToAnsi((str), 0)
-#endif
-
+   UILIB_API std::string Unicode2Ansi(const std::wstring &str, unsigned int code_page = 0);
+   UILIB_API std::wstring Ansi2Unicode(const std::string &str, unsigned int code_page = 0);
+   UILIB_API std::string Unicode2Utf8(const std::wstring &str);
+   UILIB_API std::wstring Utf82Unicode(const std::string &str);
+   UILIB_API std::string Ansi2Utf8(const std::string &str, unsigned int code_page = 0);
+   UILIB_API std::string Utf82Ansi(const std::string &str, unsigned int code_page = 0);
+   UILIB_API std::string Unicode2Utf8BOM(const std::wstring &str);
+   UILIB_API std::string Ansi2Utf8BOM(const std::string &str, unsigned int code_page = 0);
 
    class UILIB_API CriticalSection {
    public:
@@ -291,9 +273,9 @@ namespace DuiLib {
    UILIB_API std::wstring GetCurrentProcessDirectoryW();
    UILIB_API std::string GetCurrentProcessDirectoryA();
 #if defined(UNICODE) || defined(_UNICODE)
-#define GetCurrentProcessDirectory GetCurrentProcessDirectoryW
+#define GetCurrentProcessDirectory DuiLib::GetCurrentProcessDirectoryW
 #else
-#define GetCurrentProcessDirectory GetCurrentProcessDirectoryA
+#define GetCurrentProcessDirectory DuiLib::GetCurrentProcessDirectoryA
 #endif
 
 

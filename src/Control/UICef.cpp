@@ -79,7 +79,7 @@ namespace DuiLib {
             m_strInitUrl = m_pParent->GetUrl();
 
             CefBrowserHost::CreateBrowser(window_info, m_ClientHandler,
-                                          UnicodeToUtf8(m_strInitUrl.GetData()), browser_settings, request_context);
+                                          Unicode2Utf8(m_strInitUrl.GetData()), browser_settings, request_context);
         }
 
         void CloseBrowser() {
@@ -114,7 +114,7 @@ namespace DuiLib {
         void SetUrl(const CDuiString &url) {
             if (m_browser) {
                 if (m_browser->GetMainFrame()) {
-                    m_browser->GetMainFrame()->LoadURL(UnicodeToUtf8(m_pParent->GetUrl().GetData()).c_str());
+                    m_browser->GetMainFrame()->LoadURL(Unicode2Utf8(m_pParent->GetUrl().GetData()).c_str());
                 }
             }
         }
@@ -205,7 +205,7 @@ namespace DuiLib {
 
                 if (m_pParent->GetUrl() != m_strInitUrl) {
                     if (m_browser->GetMainFrame()) {
-                        m_browser->GetMainFrame()->LoadURL(UnicodeToUtf8(m_pParent->GetUrl().GetData()).c_str());
+                        m_browser->GetMainFrame()->LoadURL(Unicode2Utf8(m_pParent->GetUrl().GetData()).c_str());
                     }
                 }
             }
@@ -480,7 +480,7 @@ namespace DuiLib {
 
                 if (m_pParent && m_pParent->m_strErrorPageUrl.GetLength() > 0 && failedUrl.length() > 0) {
                     if (!m_pParent->IsErrorPage(strFailedUrl.c_str()))
-                        frame->LoadURL(UnicodeToUtf8(m_pParent->m_strErrorPageUrl.GetData()).c_str());
+                        frame->LoadURL(Unicode2Utf8(m_pParent->m_strErrorPageUrl.GetData()).c_str());
                 }
             }
         }
@@ -494,7 +494,7 @@ namespace DuiLib {
                 TraceMsgW(L"OnLoadEnd: %s\n", strFrameUrl.c_str());
                 if (m_pParent && m_pParent->m_strErrorPageUrl.GetLength() > 0 && strFrameUrl.length() > 0) {
                     if(!m_pParent->IsErrorPage(strFrameUrl.c_str()))
-                        frame->LoadURL(UnicodeToUtf8(m_pParent->m_strErrorPageUrl.GetData()).c_str());
+                        frame->LoadURL(Unicode2Utf8(m_pParent->m_strErrorPageUrl.GetData()).c_str());
                 }
             }
         }
@@ -576,7 +576,7 @@ namespace DuiLib {
 
             if (m_pParent->GetUrl().GetLength() > 0 && m_browser) {
                 if (m_browser->GetMainFrame()) {
-                    m_browser->GetMainFrame()->LoadURL(UnicodeToUtf8(m_pParent->GetUrl().GetData()).c_str());
+                    m_browser->GetMainFrame()->LoadURL(Unicode2Utf8(m_pParent->GetUrl().GetData()).c_str());
                 }
             }
         }

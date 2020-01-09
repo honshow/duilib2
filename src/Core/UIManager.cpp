@@ -215,7 +215,7 @@ namespace DuiLib {
                             hz = (HZIP)CPaintManagerUI::GetResourceZipHandle();
                         } else {
 #ifdef UNICODE
-                            std::string pwd = UnicodeToAnsi(sFilePwd.GetData());
+                            std::string pwd = Unicode2Ansi(sFilePwd.GetData());
                             hz = OpenZip(sFile, pwd.c_str());
 #else
                             hz = OpenZip(sFile, sFilePwd);
@@ -580,7 +580,7 @@ namespace DuiLib {
             std::string pwd;
 
             if(password)
-                pwd = UnicodeToAnsi(password);
+                pwd = Unicode2Ansi(password);
 
             m_hResourceZip = (HANDLE)OpenZip(pVoid, len, pwd.c_str());
 #else
@@ -608,7 +608,7 @@ namespace DuiLib {
             std::string pwd;
 
             if(password)
-                pwd = UnicodeToAnsi((wchar_t *)password);
+                pwd = Unicode2Ansi((wchar_t *)password);
 
             m_hResourceZip = (HANDLE)OpenZip(sFile, pwd.c_str());
 #else
@@ -3139,7 +3139,7 @@ namespace DuiLib {
                 else {
                     CDuiString sFilePwd = CPaintManagerUI::GetResourceZipPwd();
 #ifdef UNICODE
-                    std::string pwd = UnicodeToAnsi(sFilePwd.GetData());
+                    std::string pwd = Unicode2Ansi(sFilePwd.GetData());
                     hz = OpenZip(sFile, pwd.c_str());
 #else
                     hz = OpenZip(sFile, sFilePwd);

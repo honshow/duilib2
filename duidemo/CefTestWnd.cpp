@@ -129,7 +129,7 @@ void CefTestWnd::OnWindowInit() {
 		ss << "business name: " << businessName << std::endl;
 		for (auto it : vars) {
 			if (it.IsString())
-				ss << Utf8ToAnsi(it.GetString()) << std::endl;
+				ss << Utf82Ansi(it.GetString()) << std::endl;
 			else
 				ss << it.GetInt() << std::endl;
 		}
