@@ -32,7 +32,7 @@ endif()
 
 if (NOT BUILD_SHARED_LIBS)
 	# Use ppxnet static library
-	add_definitions(-DPPXBASE_STATIC -DUILIB_STATIC)
+	add_definitions(-DUILIB_STATIC)
 endif()
 
 file(GLOB ROOT_SOURCE_FILES 			*.cpp)
@@ -86,17 +86,10 @@ if(BUILD_SHARED_LIBS)
 	
 	target_link_libraries(${EXE_NAME} 
 		$<TARGET_LINKER_FILE:duilib2>)
-	# ppxbase
-	find_package(ppxbase REQUIRED)
-	target_link_libraries(${EXE_NAME} ppxbase)
 else()
 	add_dependencies(${EXE_NAME} duilib2-static)
 	
 	target_link_libraries(${EXE_NAME} 
 		$<TARGET_LINKER_FILE:duilib2-static>)
-	
-	# ppxbase
-	find_package(ppxbase REQUIRED)
-	target_link_libraries(${EXE_NAME} ppxbase-static)
 endif()
 
