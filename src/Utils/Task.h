@@ -9,7 +9,7 @@ namespace DuiLib {
     UILIB_API bool IsInUIThread();
 
     template<class F, class... Args>
-    UILIB_API auto PostTaskToUIThread(F&& f, Args&&... args)
+    auto PostTaskToUIThread(F&& f, Args&&... args)
         ->std::future<typename std::result_of<F(Args...)>::type> {
         using return_type = typename std::result_of<F(Args...)>::type;
 
